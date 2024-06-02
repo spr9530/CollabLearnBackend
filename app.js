@@ -1,16 +1,28 @@
+const express = require('express');
+const http = require('http');
 const { Server } = require('socket.io');
-const http = require('http'); // Import the http module
+const connectDB = require('./database/connectDB')
 
-const server = http.createServer();
+
+
+
+
+connectDB()
+
+const app = express();
+const server = http.createServer(app); 
 const io = new Server(server, {
     cors: {
         origin: '*'
     }
 });
 
+app.use(express.json())
+app.use('/app/v1/room', require('./routes/RoomRoutes') )
+
 function debounce(func, delay) {
     let timerId;
-    return function (...args) {
+    return function(...args) {
         clearTimeout(timerId);
         timerId = setTimeout(() => {
             func.apply(this, args);
@@ -21,10 +33,15 @@ function debounce(func, delay) {
 io.on('connection', (socket) => {
 
     const debouncedCodeEditor = debounce((code) => {
-        io.to(room).emit('codeEditor', code); socket.broadcast.emit('codeEditor', code);
+        io.to(room).emit('codeEditor', code);
+        socket.broadcast.emit('codeEditor', code);
+    }, 300);
+    const debouncedWhiteBoard = debounce((elements) => {
+        io.to(room).emit('whiteBoard', elements);
+        socket.broadcast.emit('whiteBoard', elements);
     }, 300);
 
-    let room = ''
+    let room = '';
     socket.on('codeEditor', (code) => {
         debouncedCodeEditor(code);
     });
@@ -32,22 +49,18 @@ io.on('connection', (socket) => {
     socket.on('roomCreate', (code) => {
         console.log(code);
         room = code;
-    })
+    });
 
     socket.on(`joinRoom`, (code) => {
-        socket.join(code)
+        socket.join(code);
         socket.emit('roomJoined', (code) => {
-            console.log(`user Joined at ${code}`)
-        })
+            console.log(`user Joined at ${code}`);
+        });
+    });
+
+    socket.on('whiteBoard', (elements)=>{
+        debouncedWhiteBoard(elements)
     })
-
-
-
-
-
-    const debouncedWhiteBoard = debounce((data) => {
-        socket.broadcast.emit('whiteBoard', data);
-    }, 300);
 
     socket.on('whiteBoard', (data) => {
         debouncedWhiteBoard(data);
