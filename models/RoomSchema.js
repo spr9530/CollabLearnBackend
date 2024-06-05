@@ -7,27 +7,23 @@ const RoomSchema = new Schema(({
         type:String,
         required: true,
     },
-    user:[
-        {
-           userId:{
-            type: String,
-           },
-           userRole:{
-            type:String,
-           }
+    roomName:{
+        type:String,
+        required: true,
+    },
+    users:[{
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref:'UserInfo',
+          required: true 
         },
-    ],
-    roomInfo:[
-        {
-           textEditor:{
-            type: String,
-           },
-           whiteBoard:{
-            type:String,
-           }
-        },
-    ]
-    
+        role: {
+          type: String,
+          required: true 
+        }
+      }],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 }))
 
 const RoomInfo = mongoose.model('RoomInfo', RoomSchema);

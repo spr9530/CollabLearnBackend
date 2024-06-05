@@ -1,5 +1,6 @@
 const express = require('express');
-const { saveRoomData } = require('../controller/roomController');
+const { saveRoomData, creatRoom, getRoomData, addUserToRoom } = require('../controller/roomController');
+const validateUserInfo = require('../controller/validateUser');
 const router = express.Router();
 
 router.get('/', (req, res) => {
@@ -7,5 +8,9 @@ router.get('/', (req, res) => {
 });
 
 router.post('/saveData', saveRoomData);
+router.post('/createRoom',validateUserInfo, creatRoom)
+router.get('/:id',getRoomData)
+router.patch('/:id',addUserToRoom)
+
 
 module.exports = router;
