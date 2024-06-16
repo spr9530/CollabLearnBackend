@@ -24,6 +24,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors());
 app.use('/app/v1/room', require('./routes/RoomRoutes'))
+app.use('/app/v1/task', require('./routes/TaskRoute'))
 app.use('/app/v1/user', require('./routes/UserRoutes'))
 
 
@@ -37,13 +38,15 @@ function debounce(func, delay) {
     };
 }
 
-let rooms = {}
+let rooms = []
 
 io.on('connection', (socket) => {
 
-    const debouncedCodeEditor = debounce(({id, code}) => {
+    const debouncedCodeEditor = debounce(({ id1: id, code }) => {
         socket.to(id).emit('codeEditor', code);
-    },0);
+        console.log('send', id)
+
+    }, 0);
     const debouncedWhiteBoard = debounce((elements) => {
         io.to(room).emit('whiteBoard', elements);
         socket.broadcast.emit('whiteBoard', elements);
@@ -58,9 +61,13 @@ io.on('connection', (socket) => {
         socket.join(code);
     });
 
-    socket.on('userAllowed', ({code, user})=>{
-        console.log(user)
-        io.to(code).emit('userAllowed',code)
+    socket.on('joinRoom', (code) => {
+        socket.join(code);
+        console.log('user joined')
+    });
+
+    socket.on('userAllowed', ({ code, roomId }) => {
+        io.to(code).emit('userAllowed', {code, roomId})
     })
 
     socket.on('whiteBoard', (elements) => {
@@ -70,8 +77,8 @@ io.on('connection', (socket) => {
     socket.on('whiteBoard', (data) => {
         debouncedWhiteBoard(data);
     });
-    socket.on('permissionToJoin', ({code, userInfo}) => {
-        io.to(code).emit('permissionToJoin', userInfo);
+    socket.on('permissionToJoin', ({ code, user }) => {
+        io.to(code).emit('permissionToJoin', user);
     });
 
     socket.on('disconnect', () => {

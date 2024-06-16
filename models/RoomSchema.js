@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const RoomSchema = new Schema(({
+const RoomSchema = new Schema({
     roomCode:{
         type:String,
         required: true,
@@ -24,7 +24,7 @@ const RoomSchema = new Schema(({
       }],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
-}))
+})
 
 const RoomInfo = mongoose.model('RoomInfo', RoomSchema);
 

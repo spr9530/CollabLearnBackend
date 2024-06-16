@@ -1,3 +1,4 @@
+const EditorInfo = require('../models/EditorsSchema');
 const RoomInfo = require('../models/RoomSchema');
 const UserInfo = require('../models/UserSchema')
 
@@ -46,10 +47,14 @@ const creatRoom = async (req, res) => {
 }
 
 const getRoomData = async (req, res) => {
-    const { id: roomId } = req.params;
-    if (roomId) {
+    const { id } = req.params;
+    if (id) {
+        console.log(id)
         try {
-            const response = await RoomInfo.findOne({ roomCode: roomId })
+            const response = await RoomInfo.findOne({ _id: id })
+            await RoomInfo.populate(response,{
+                path:'users.userId'
+            })
 
             if (response) {
                 res.json({ roomInfo: response });
@@ -78,7 +83,6 @@ const addUserToRoom = async (req, res) => {
             { new: true } 
         );
 
-        console.log(response); 
         res.json({ response }); 
     } catch (error) {
         console.error(error);
@@ -86,5 +90,79 @@ const addUserToRoom = async (req, res) => {
     }
 }
 
+const createRoomData = async(req,res) => {
+    const {name, type} = req.body
+    const {id} = req.params
+    console.log(req.body)
+    if(!name || !type ){
+        res.status(501).json({error: 'Data is not Provided'})
+    }
 
-module.exports = { saveRoomData, creatRoom, getRoomData, addUserToRoom };
+    try{
+        const data = new EditorInfo({
+            editorType: type,
+            editorName: name,
+            roomId:id,
+            roomData:''
+        })
+    
+        await data.save();
+        res.status(200).json({success: 'file Created Successfully'})
+    }catch(error){
+        res.status(500).json({error})
+    }
+}
+
+const getRoomFiles = async(req,res) =>{
+    const { id } = req.params;
+
+try {
+    const fetchRoomFiles = await EditorInfo.find({ roomId: id });
+    if(!fetchRoomFiles){
+        return res.status(404).json({ error: 'Room files not found' });
+    }
+    if (fetchRoomFiles.length === 0) {
+        return res.json({ error: 'No Files Created' });
+    }
+
+    res.json(fetchRoomFiles);
+} catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+}
+
+}
+
+const updateEditors = async(req,res) =>{
+    const {roomData} = req.body
+    const {id} = req.params;
+    console.log(req.body)
+    try{
+        if(!roomData && roomData!=''){
+            res.status(501).json({error:'Data not Provided'})
+        }
+    
+        const editor = await EditorInfo.findOneAndUpdate({_id: id}, {$set :{roomData: roomData }}, {new:true})
+        res.json({ editor }); 
+    
+    }catch(error){
+        res.status(501).json({error: error.message})
+    }
+
+}
+
+const fetchRoomEditor = async(req, res) => {
+    const {id} = req.params;
+
+    try{
+
+        const response = await EditorInfo.findOne({_id: id})
+
+        res.json({response})
+
+    }catch(error){
+        res.status(501).json({error: error.message})
+    }
+}
+
+
+module.exports = { saveRoomData, creatRoom, getRoomData, addUserToRoom, updateEditors, createRoomData, getRoomFiles,fetchRoomEditor };

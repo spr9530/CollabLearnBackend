@@ -49,8 +49,12 @@ const getUserInfo = async(req,res) =>{
     const user = req.user;
     if(user){
         try{
-            const userInfo = await UserInfo.findOne({ _id: user.userId})
-
+            const userInfo = await UserInfo.findOne({ _id: user.userId}).populate('rooms')
+            await UserInfo.populate(userInfo, {
+                path: 'rooms.users.userId'
+            });
+            
+            console.log(userInfo)
             res.json({userInfo})
         }catch(error){
             res.status(500).json({error})
