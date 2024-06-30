@@ -11,18 +11,9 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
-app.use(cors({
-    origin: '*',
-    credentials: true
-}));
+app.use(cors());
 
-const io = new Server(server, {
-    cors: {
-        origin: '*',
-        credentials: true
-    },
-    pingTimeout: 60000
-});
+const io = new Server(server)
 
 const peerServer = ExpressPeerServer(server, {
     debug: true,
@@ -36,10 +27,7 @@ app.use(bodyParser.json());
 app.use('/app/v1/room', require('./routes/RoomRoutes'));
 app.use('/app/v1/task', require('./routes/TaskRoute'));
 app.use('/app/v1/user', require('./routes/UserRoutes'));
-app.use('/app/v1/room/meeting',cors({
-    origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
-    credentials: true
-}), peerServer);
+app.use('/app/v1/room/meeting', peerServer);
 
 // Middleware to add headers for CORS
 app.use((req, res, next) => {
