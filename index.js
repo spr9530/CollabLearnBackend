@@ -22,10 +22,10 @@ app.use(cors({
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-    origin: ['https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app'],
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
+        origin: ['https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app'],
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
 });
 const peerServer = ExpressPeerServer(server, {
     debug: true,
