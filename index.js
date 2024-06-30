@@ -11,11 +11,10 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
-
+app.use(cors();
 const io = new Server(server, {
     cors: {
         origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
-        methods: ['GET', 'POST'],
         credentials: true
     }
 });
@@ -25,11 +24,7 @@ const peerServer = ExpressPeerServer(server, {
 });
 
 // Add CORS middleware before any routes are defined
-app.use(cors({
-    origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
-    methods: ['GET', 'POST'],
-    credentials: true
-}));
+
 
 app.use(express.json());
 app.use(bodyParser.json());
