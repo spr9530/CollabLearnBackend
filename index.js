@@ -13,6 +13,7 @@ const app = express();
 const server = http.createServer(app);
 app.use(cors());
 const io = new Server(server, {
+    pingTimeout:60000,
     cors: {
         origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
         credentials: true
