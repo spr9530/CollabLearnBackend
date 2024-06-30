@@ -14,6 +14,11 @@ const { ExpressPeerServer } = require('peer');
 connectDB()
 
 const app = express();
+app.use(cors({
+    origin: ['https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app'],
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
@@ -28,7 +33,6 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
 app.use('/app/v1/room', require('./routes/RoomRoutes'))
 app.use('/app/v1/task', require('./routes/TaskRoute'))
 app.use('/app/v1/user', require('./routes/UserRoutes'))
