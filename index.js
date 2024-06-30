@@ -74,4 +74,45 @@ io.on('connection', (socket) => {
         debouncedTextEditor({ roomId, editorId, content });
     });
 
-    socket.on('roomCreate', (code
+    socket.on('roomCreate', (code) => {
+        socket.join(code);
+    });
+
+    socket.on('joinRoom', (code) => {
+        socket.join(code);
+        console.log('User joined room:', code);
+    });
+
+    socket.on('connectEditor', (code) => {
+        socket.join(code);
+        console.log('User connected to editor:', code);
+    });
+
+    socket.on('updateNotification', (code) => {
+        io.to(code).emit('updateNotification');
+    });
+
+    socket.on('userAllowed', ({ code, roomId }) => {
+        io.to(code).emit('userAllowed', { code, roomId });
+    });
+
+    socket.on('updateRequests', (code) => {
+        io.to(code).emit('updateRequests', code);
+        console.log('Emitted server updateRequests for room:', code);
+    });
+
+    socket.on('joinedMeet', ({ roomId, userId }) => {
+        socket.join(roomId);
+        socket.to(roomId).emit('newJoinee', userId);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('A user disconnected');
+    });
+});
+
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
