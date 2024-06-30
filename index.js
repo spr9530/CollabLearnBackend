@@ -1,44 +1,51 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const connectDB = require('./database/connectDB')
+const connectDB = require('./database/connectDB');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const { ExpressPeerServer } = require('peer');
 
-
-
-
-
-connectDB()
+connectDB();
 
 const app = express();
-app.use(cors({
-    origin: ['https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app'],
-    methods: ['GET', 'POST'],
-    credentials: true
-}));
 const server = http.createServer(app);
+
 const io = new Server(server, {
     cors: {
-        origin: ['https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app'],
+        origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
         methods: ['GET', 'POST'],
         credentials: true
     }
 });
+
 const peerServer = ExpressPeerServer(server, {
     debug: true,
 });
 
+// Add CORS middleware before any routes are defined
+app.use(cors({
+    origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
+
 app.use(express.json());
 app.use(bodyParser.json());
-app.use('/app/v1/room', require('./routes/RoomRoutes'))
-app.use('/app/v1/task', require('./routes/TaskRoute'))
-app.use('/app/v1/user', require('./routes/UserRoutes'))
+app.use('/app/v1/room', require('./routes/RoomRoutes'));
+app.use('/app/v1/task', require('./routes/TaskRoute'));
+app.use('/app/v1/user', require('./routes/UserRoutes'));
 app.use('/app/v1/room/meeting', peerServer);
 
-
+// Middleware to add headers for CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
 
 function debounce(func, delay) {
     let timerId;
@@ -51,8 +58,6 @@ function debounce(func, delay) {
 }
 
 io.on('connection', (socket) => {
-
-    // Debounced functions for emitting events
     const debouncedCodeEditor = debounce(({ roomId, editorId, code }) => {
         socket.to(editorId).emit('codeEditor', { roomId, editorId, code });
     }, 200);
@@ -61,7 +66,6 @@ io.on('connection', (socket) => {
         socket.to(editorId).emit('textEditor', { roomId, editorId, content });
     }, 200);
 
-    // Socket event listeners
     socket.on('codeEditor', ({ roomId, editorId, code }) => {
         debouncedCodeEditor({ roomId, editorId, code });
     });
@@ -76,31 +80,31 @@ io.on('connection', (socket) => {
 
     socket.on('joinRoom', (code) => {
         socket.join(code);
-        console.log('user joined')
+        console.log('user joined');
     });
+
     socket.on('connectEditor', (code) => {
         socket.join(code);
-        console.log('user conected')
+        console.log('user connected');
     });
 
     socket.on('updateNotification', (code) => {
-        io.to(code).emit('updateNotification')
-    })
+        io.to(code).emit('updateNotification');
+    });
 
     socket.on('userAllowed', ({ code, roomId }) => {
-        io.to(code).emit('userAllowed', { code, roomId })
-    })
+        io.to(code).emit('userAllowed', { code, roomId });
+    });
 
     socket.on('updateRequests', (code) => {
         io.to(code).emit('updateRequests', code);
-        console.log('emmited server')
-    })
+        console.log('emitted server');
+    });
 
-    socket.on('joinedMeet', ({roomId, userId})=>{
-        socket.join(roomId)
-        socket.to(roomId).emit('newJoinee', userId)
-    })
-
+    socket.on('joinedMeet', ({ roomId, userId }) => {
+        socket.join(roomId);
+        socket.to(roomId).emit('newJoinee', userId);
+    });
 
     socket.on('disconnect', () => {
         console.log('A user disconnected');
