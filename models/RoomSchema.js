@@ -22,6 +22,13 @@ const RoomSchema = new Schema({
           required: true 
         }
       }],
+    reqsts:[{
+      user:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:'UserInfo',
+        required: true 
+      }
+    }],
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 })

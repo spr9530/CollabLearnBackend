@@ -1,18 +1,22 @@
 const TaskInfo = require("../models/TaskSchema");
 
 const createTask = async (req, res) => {
-    const { taskName, taskDescription, taskStep, taskRoom, users, taskDate } = req.body;
-    const task = await TaskInfo({
-        taskName,
-        taskDescription,
-        taskStep,
-        taskRoom,
-        users,
-        taskDate,
-    })
-    await task.save()
-    console.log(task);
-    res.json({ task })
+    try {
+        const { taskName, taskDescription, taskStep, taskRoom, users, taskDate } = req.body;
+        const task = await TaskInfo({
+            taskName,
+            taskDescription,
+            taskStep,
+            taskRoom,
+            users,
+            taskDate,
+        })
+        await task.save()
+        res.json({ task })
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create task' });
+    }
+
 }
 
 const getRoomTask = async (req, res) => {
@@ -30,7 +34,7 @@ const getRoomTask = async (req, res) => {
     }
 };
 
-const getOneTask = async(req, res) => {
+const getOneTask = async (req, res) => {
     const { id1, id2 } = req.params;
 
     try {
@@ -72,19 +76,19 @@ const updateTask = async (req, res) => {
 
 }
 
-const deleteTask = async(req, res) => {
-    const {id} = req.params;
+const deleteTask = async (req, res) => {
+    const { id } = req.params;
 
-    try{
-        const task = await TaskInfo.findOneAndDelete({_id: id});
-        
+    try {
+        const task = await TaskInfo.findOneAndDelete({ _id: id });
+
         if (!task) {
             return res.status(404).json({ error: 'Task not found' });
         }
 
-        res.status(200).json({task})
-    }catch(error){
-        res.status(501).json({error: error.message})
+        res.status(200).json({ task })
+    } catch (error) {
+        res.status(501).json({ error: error.message })
     }
 }
 

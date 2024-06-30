@@ -5,6 +5,7 @@ const connectDB = require('./database/connectDB')
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
+const { ExpressPeerServer } = require('peer');
 
 
 
@@ -19,6 +20,9 @@ const io = new Server(server, {
         origin: '*'
     }
 });
+const peerServer = ExpressPeerServer(server, {
+    debug: true,
+});
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -26,6 +30,8 @@ app.use(cors());
 app.use('/app/v1/room', require('./routes/RoomRoutes'))
 app.use('/app/v1/task', require('./routes/TaskRoute'))
 app.use('/app/v1/user', require('./routes/UserRoutes'))
+app.use('/app/v1/room/meeting', peerServer);
+
 
 
 function debounce(func, delay) {
@@ -38,23 +44,24 @@ function debounce(func, delay) {
     };
 }
 
-let rooms = []
-
 io.on('connection', (socket) => {
 
-    const debouncedCodeEditor = debounce(({ id1: id, code }) => {
-        socket.to(id).emit('codeEditor', code);
-        console.log('send', id)
+    // Debounced functions for emitting events
+    const debouncedCodeEditor = debounce(({ roomId, editorId, code }) => {
+        socket.to(editorId).emit('codeEditor', { roomId, editorId, code });
+    }, 200);
 
-    }, 0);
-    const debouncedWhiteBoard = debounce((elements) => {
-        io.to(room).emit('whiteBoard', elements);
-        socket.broadcast.emit('whiteBoard', elements);
-    }, 300);
+    const debouncedTextEditor = debounce(({ roomId, editorId, content }) => {
+        socket.to(editorId).emit('textEditor', { roomId, editorId, content });
+    }, 200);
 
-    let room = null;
-    socket.on('codeEditor', (code) => {
-        debouncedCodeEditor(code);
+    // Socket event listeners
+    socket.on('codeEditor', ({ roomId, editorId, code }) => {
+        debouncedCodeEditor({ roomId, editorId, code });
+    });
+
+    socket.on('textEditor', ({ roomId, editorId, content }) => {
+        debouncedTextEditor({ roomId, editorId, content });
     });
 
     socket.on('roomCreate', (code) => {
@@ -65,21 +72,29 @@ io.on('connection', (socket) => {
         socket.join(code);
         console.log('user joined')
     });
+    socket.on('connectEditor', (code) => {
+        socket.join(code);
+        console.log('user conected')
+    });
+
+    socket.on('updateNotification', (code) => {
+        io.to(code).emit('updateNotification')
+    })
 
     socket.on('userAllowed', ({ code, roomId }) => {
-        io.to(code).emit('userAllowed', {code, roomId})
+        io.to(code).emit('userAllowed', { code, roomId })
     })
 
-    socket.on('whiteBoard', (elements) => {
-        debouncedWhiteBoard(elements)
+    socket.on('updateRequests', (code) => {
+        io.to(code).emit('updateRequests', code);
+        console.log('emmited server')
     })
 
-    socket.on('whiteBoard', (data) => {
-        debouncedWhiteBoard(data);
-    });
-    socket.on('permissionToJoin', ({ code, user }) => {
-        io.to(code).emit('permissionToJoin', user);
-    });
+    socket.on('joinedMeet', ({roomId, userId})=>{
+        socket.join(roomId)
+        socket.to(roomId).emit('newJoinee', userId)
+    })
+
 
     socket.on('disconnect', () => {
         console.log('A user disconnected');

@@ -3,6 +3,14 @@ const RoomInfo = require('./RoomSchema')
 const Schema = mongoose.Schema
 
 const userInfoSchema = new Schema({
+    name:{
+        type: String,
+        required: true,
+    },
+    email:{
+        type: String,
+        required: true,
+    },
     userName: {
         type: String,
         required: true,
