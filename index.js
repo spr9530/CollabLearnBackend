@@ -11,19 +11,17 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
-app.use(cors({
+const corsOptions = {
     origin: 'http://localhost:5173',
     credentials: true,
     methods: ['GET', 'POST'],
-}));
-
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+};
+app.use(cors(corsOptions));
 const io = new Server(server, {
-    cors: {
-        origin: 'http://localhost:5173',
-        methods: ['GET', 'POST'],
-        credentials: true
-    }
+    cors: corsOptions
 });
+
 
 const peerServer = ExpressPeerServer(server, {
     debug: true,
@@ -34,6 +32,10 @@ const peerServer = ExpressPeerServer(server, {
 
 app.use(express.json());
 app.use(bodyParser.json());
+app.use((req, res, next) => {
+    console.log(`Request Method: ${req.method}, Request URL: ${req.url}, Origin: ${req.headers.origin}`);
+    next();
+});
 app.use('/app/v1/room', require('./routes/RoomRoutes'));
 app.use('/app/v1/task', require('./routes/TaskRoute'));
 app.use('/app/v1/user', require('./routes/UserRoutes'));
