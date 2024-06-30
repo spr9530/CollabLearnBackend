@@ -15,28 +15,32 @@ const server = http.createServer(app);
 
 // Set up CORS options
 const corsOptions = {
-   origin: 'http://localhost:5173',
-   credentials: true,
+    origin: 'http://localhost:5173',
+    credentials: true,
 };
+app.use(cors(corsOptions));
 
-// Initialize Socket.IO with the server and CORS options
+// Body parser setup
+app.use(bodyParser.json());
+app.use(express.json());
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Socket.IO setup
 const io = new Server(server, {
-    pingTimeout: 60000,
-    cors: corsOptions,
+    cors: {
+        origin: 'http://localhost:5173',
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
 });
 
-app.use(cors({
-   origin: 'http://localhost:5173',
-   credentials: true,
-}));
 // Initialize PeerJS server
 const peerServer = ExpressPeerServer(server, {
     debug: true,
 });
 
 // Middleware setup
-app.use(express.json());
-app.use(bodyParser.json());
 
 app.use('/app/v1/room', require('./routes/RoomRoutes'));
 app.use('/app/v1/task', require('./routes/TaskRoute'));
