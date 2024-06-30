@@ -25,6 +25,10 @@ const io = new Server(server, {
     cors: corsOptions,
 });
 
+app.use(cors({
+   origin: 'http://localhost:5173',
+   credentials: true,
+}));
 // Initialize PeerJS server
 const peerServer = ExpressPeerServer(server, {
     debug: true,
@@ -33,7 +37,7 @@ const peerServer = ExpressPeerServer(server, {
 // Middleware setup
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
+
 app.use('/app/v1/room', require('./routes/RoomRoutes'));
 app.use('/app/v1/task', require('./routes/TaskRoute'));
 app.use('/app/v1/user', require('./routes/UserRoutes'));
