@@ -1,49 +1,38 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const connectDB = require('./database/connectDB');
+const connectDB = require('./database/connectDB')
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
 const { ExpressPeerServer } = require('peer');
 
-connectDB();
+
+
+
+
+connectDB()
 
 const app = express();
 const server = http.createServer(app);
-
-// Enhanced CORS configuration
-const corsOptions = {
-    origin: 'http://localhost:5173',
-    credentials: true,
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
-};
-app.use(cors(corsOptions));
-
-app.use(express.json());
-app.use(bodyParser.json());
-
 const io = new Server(server, {
-    cors: corsOptions
+    cors: {
+        origin: '*',
+    }
 });
-
 const peerServer = ExpressPeerServer(server, {
     debug: true,
 });
 
-// Explicitly set headers middleware
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'http://localhost:5173');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Allow-Methods', 'GET, POST');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
-
-app.use('/app/v1/room', require('./routes/RoomRoutes'));
-app.use('/app/v1/task', require('./routes/TaskRoute'));
-app.use('/app/v1/user', require('./routes/UserRoutes'));
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(cors());
+app.use('/app/v1/room', require('./routes/RoomRoutes'))
+app.use('/app/v1/task', require('./routes/TaskRoute'))
+app.use('/app/v1/user', require('./routes/UserRoutes'))
 app.use('/app/v1/room/meeting', peerServer);
+
+
 
 function debounce(func, delay) {
     let timerId;
@@ -56,8 +45,8 @@ function debounce(func, delay) {
 }
 
 io.on('connection', (socket) => {
-    console.log('A user connected');
 
+    // Debounced functions for emitting events
     const debouncedCodeEditor = debounce(({ roomId, editorId, code }) => {
         socket.to(editorId).emit('codeEditor', { roomId, editorId, code });
     }, 200);
@@ -66,6 +55,7 @@ io.on('connection', (socket) => {
         socket.to(editorId).emit('textEditor', { roomId, editorId, content });
     }, 200);
 
+    // Socket event listeners
     socket.on('codeEditor', ({ roomId, editorId, code }) => {
         debouncedCodeEditor({ roomId, editorId, code });
     });
@@ -80,31 +70,31 @@ io.on('connection', (socket) => {
 
     socket.on('joinRoom', (code) => {
         socket.join(code);
-        console.log('User joined room:', code);
+        console.log('user joined')
     });
-
     socket.on('connectEditor', (code) => {
         socket.join(code);
-        console.log('User connected to editor:', code);
+        console.log('user conected')
     });
 
     socket.on('updateNotification', (code) => {
-        io.to(code).emit('updateNotification');
-    });
+        io.to(code).emit('updateNotification')
+    })
 
     socket.on('userAllowed', ({ code, roomId }) => {
-        io.to(code).emit('userAllowed', { code, roomId });
-    });
+        io.to(code).emit('userAllowed', { code, roomId })
+    })
 
     socket.on('updateRequests', (code) => {
         io.to(code).emit('updateRequests', code);
-        console.log('Emitted server updateRequests for room:', code);
-    });
+        console.log('emmited server')
+    })
 
-    socket.on('joinedMeet', ({ roomId, userId }) => {
-        socket.join(roomId);
-        socket.to(roomId).emit('newJoinee', userId);
-    });
+    socket.on('joinedMeet', ({roomId, userId})=>{
+        socket.join(roomId)
+        socket.to(roomId).emit('newJoinee', userId)
+    })
+
 
     socket.on('disconnect', () => {
         console.log('A user disconnected');
