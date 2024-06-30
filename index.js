@@ -15,14 +15,13 @@ const server = http.createServer(app);
 
 // Set up CORS options
 const corsOptions = {
-    origin: 'http://localhost:5173', // Client origin
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
-    credentials: true, // Allow credentials
+   origin: 'http://localhost:5173',
+   credentials: true,
 };
 
 // Initialize Socket.IO with the server and CORS options
 const io = new Server(server, {
+    pingTimeout: 60000,
     cors: corsOptions,
 });
 
