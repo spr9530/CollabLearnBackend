@@ -12,13 +12,13 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 app.use(cors({
-    origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
+    origin: '*',
     credentials: true
 }));
 
 const io = new Server(server, {
     cors: {
-        origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
+        origin: '*',
         credentials: true
     },
     pingTimeout: 60000
