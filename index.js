@@ -11,14 +11,19 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Origin', X-Requested-With', 'Content-Type', 'Accept']
+}));
 
 const io = new Server(server, {
     cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true
-  }
+        origin: 'http://localhost:5173',
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
 });
 
 const peerServer = ExpressPeerServer(server, {
