@@ -11,7 +11,7 @@ connectDB();
 
 const app = express();
 const server = http.createServer(app);
-app.use(cors();
+app.use(cors());
 const io = new Server(server, {
     cors: {
         origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
