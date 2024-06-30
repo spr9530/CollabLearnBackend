@@ -34,7 +34,7 @@ const io = new Server(server, {
         credentials: true
     }
 });
-consol.log(io)
+console.log(io)
 
 // Initialize PeerJS server
 const peerServer = ExpressPeerServer(server, {
