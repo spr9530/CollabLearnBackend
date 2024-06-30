@@ -36,7 +36,10 @@ app.use(bodyParser.json());
 app.use('/app/v1/room', require('./routes/RoomRoutes'));
 app.use('/app/v1/task', require('./routes/TaskRoute'));
 app.use('/app/v1/user', require('./routes/UserRoutes'));
-app.use('/app/v1/room/meeting', peerServer);
+app.use('/app/v1/room/meeting',cors({
+    origin: 'https://qwertyuioplkjhgfdsaqwertyuiop.netlify.app',
+    credentials: true
+}), peerServer);
 
 // Middleware to add headers for CORS
 app.use((req, res, next) => {
