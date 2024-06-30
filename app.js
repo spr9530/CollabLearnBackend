@@ -17,8 +17,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: '*',
-    }
+    origin: "*",
+    allowedHeaders: ["my-custom-header"],
+    credentials: true
+  }
 });
 const peerServer = ExpressPeerServer(server, {
     debug: true,
